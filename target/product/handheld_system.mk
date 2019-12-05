@@ -56,7 +56,6 @@ PRODUCT_PACKAGES += \
     MmsService \
     MtpDocumentsProvider \
     MusicFX \
-    NfcNci \
     OsuLogin \
     PacProcessor \
     PrintRecommendationService \
@@ -73,6 +72,7 @@ PRODUCT_PACKAGES += \
     UserDictionaryProvider \
     VpnDialogs \
     vr \
+    #NfcNci \
 
 
 PRODUCT_SYSTEM_SERVER_APPS += \
