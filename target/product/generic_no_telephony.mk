@@ -24,7 +24,6 @@ PRODUCT_PACKAGES := \
     Gallery2 \
     Music \
     MusicFX \
-    NfcNci \
     OneTimeInitializer \
     Provision \
     SystemUI \
@@ -34,6 +33,7 @@ PRODUCT_PACKAGES := \
     DisplayCutoutEmulationTallOverlay \
     EasterEgg \
     WallpaperCropper
+#    NfcNci
 
 PRODUCT_PACKAGES += \
     clatd \
