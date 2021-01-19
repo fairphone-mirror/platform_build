@@ -303,7 +303,6 @@ ifndef BUILD_NUMBER
   BUILD_NUMBER := eng.$(shell echo $${BUILD_USERNAME:0:6}).$(shell $(DATE) +%Y%m%d.%H%M%S)
   HAS_BUILD_NUMBER := false
 endif
-.KATI_READONLY := BUILD_NUMBER HAS_BUILD_NUMBER
 
 ifndef PLATFORM_MIN_SUPPORTED_TARGET_SDK_VERSION
   # Used to set minimum supported target sdk version. Apps targeting sdk
