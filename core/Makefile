@@ -4273,6 +4273,16 @@ endif # PRODUCT_BUILD_SUPER_PARTITION
 
 endif # !TARGET_BUILD_UNBUNDLED
 
+ifeq ($(T2M_ENABLE_TMC), 1)
+.PHONY: sw_version
+sw_version: $(INSTALLED_SWVERSION_TARGET)
+INSTALLED_SWVERSION_TARGET := $(PRODUCT_OUT)/swversion.mbn
+SWVERSION_GENE_TOOL := device/qcom/common/tools/generate_swversion.py
+$(INSTALLED_SWVERSION_TARGET): $(SWVERSION_GENE_TOOL) $(BUILD_NUMBER_FILE)
+  python $(SWVERSION_GENE_TOOL) $(INSTALLED_SWVERSION_TARGET) $(BUILD_NUMBER_FROM_FILE)
+droidcore: $(INSTALLED_SWVERSION_TARGET)
+endif
+
 # -----------------------------------------------------------------
 # bring in the installer image generation defines if necessary
 ifeq ($(TARGET_USE_DISKINSTALLER),true)
