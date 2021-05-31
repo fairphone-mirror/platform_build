@@ -2,10 +2,12 @@
 
 datetime=$(date +'%Y%m%d')
 
+display_version=`awk -F\" '/BUILD_AP_VER/{print $2}' version/build_version.h`
+
 if [ "$TARGET_BUILD_VARIANT" = "user" ]; then
-    BUILD_DISPLAY_ID=FP4.$BUILD_NUMBER
+    BUILD_DISPLAY_ID=FP4.$BUILD_NUMBER.$display_version-user.$datetime
 else
-    BUILD_DISPLAY_ID=FP4.$BUILD_NUMBER.$datetime-userdebug
+    BUILD_DISPLAY_ID=FP4.$BUILD_NUMBER.$display_version-userdebug.$datetime
 fi
 
 echo "# begin build properties"
