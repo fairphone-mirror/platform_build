@@ -2986,7 +2986,14 @@ $(INSTALLED_USERDATAIMAGE_TARGET): $(INSTALLED_USERDATAIMAGE_TARGET_DEPS)
 .PHONY: userdataimage-nodeps
 userdataimage-nodeps: | $(INTERNAL_USERIMAGES_DEPS)
 	$(build-userdataimage-target)
-
+#added by wangxiaoman for 10717899
+# By flashing an empty userdata image, device would format data partition
+# automatically if 'formattable' flag is set in fstab.
+# See function 'fs_mgr_mount_all' in fs_mgr.cpp for more details.
+else ifdef BOARD_PREBUILT_USERDATAIMAGE
+INSTALLED_USERDATAIMAGE_TARGET := $(PRODUCT_OUT)/userdata.img
+$(eval $(call copy-one-file,$(BOARD_PREBUILT_USERDATAIMAGE),$(INSTALLED_USERDATAIMAGE_TARGET)))
+#added end by wangxiaoman
 endif # BUILDING_USERDATA_IMAGE
 
 # ASAN libraries in the system image - build rule.
