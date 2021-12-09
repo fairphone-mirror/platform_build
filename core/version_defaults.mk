@@ -249,7 +249,7 @@ ifndef PLATFORM_BASE_OS
   # Can be an arbitrary string, but must be a single word.
   #
   # If there is no $PLATFORM_BASE_OS set, keep it empty.
-  PLATFORM_BASE_OS :=
+  PLATFORM_BASE_OS := Fairphone/FP2/FP2:9/21.10.0-rel.2/gms-1ee7158a:user/release-keys
 endif
 
 ifndef BUILD_ID
