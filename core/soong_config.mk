@@ -169,6 +169,8 @@ $(call add_json_list, TargetFSConfigGen,                 $(TARGET_FS_CONFIG_GEN)
 
 $(call add_json_str_omitempty, Target_init_vendor_lib,   $(TARGET_INIT_VENDOR_LIB))
 
+$(call add_json_bool, Fp2_use_appops_su,                 $(filter true,$(FP2_USE_APPOPS_SU)))
+
 $(call add_json_map, VendorVars)
 $(foreach namespace,$(SOONG_CONFIG_NAMESPACES),\
   $(call add_json_map, $(namespace))\
