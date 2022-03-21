@@ -426,6 +426,15 @@ function addcompletions()
     complete -F _complete_android_module_names m
 }
 
+function get_build_product()
+{
+    local -a prodlist
+    prodlist=(`/usr/bin/find $@ -name AndroidProducts.mk 2>/dev/null | \
+                        xargs grep -h -E -o "[^\/]*.mk" | \
+                        awk '{sub (".mk","",$NF); print $NF}' | sort | uniq`)
+    echo ${prodlist[*]}
+}
+
 function choosetype()
 {
     echo "Build type choices are:"
@@ -489,11 +498,26 @@ function choosetype()
 function chooseproduct()
 {
     local default_value
+    local -a prodlist
+    local index=1
+    local p
+    local poo
+
+
     if [ "x$TARGET_PRODUCT" != x ] ; then
         default_value=$TARGET_PRODUCT
     else
         default_value=aosp_arm
     fi
+
+    prodlist=(`get_build_product device/tct device/qcom`)
+
+    echo "Product choices are:"
+    for p in ${prodlist[@]}
+    do
+        echo "     $index. $p"
+        let "index = $index + 1"
+    done
 
     export TARGET_BUILD_APPS=
     export TARGET_PRODUCT=
@@ -510,6 +534,13 @@ function chooseproduct()
 
         if [ -z "$ANSWER" ] ; then
             export TARGET_PRODUCT=$default_value
+        elif (echo -n $ANSWER | grep -q -e "^[0-9][0-9]*$") ; then
+            poo=`echo -n $ANSWER`
+            if [ $poo -le ${#prodlist[@]} ] ; then
+                export TARGET_PRODUCT=${prodlist[$(($ANSWER-1))]}
+            else
+                echo "** Bad product selection: $ANSWER"
+            fi
         else
             if check_product $ANSWER
             then
