@@ -233,15 +233,6 @@ DATE := date -d @$(BUILD_DATETIME)
 # to soong_ui.
 $(KATI_obsolete_var BUILD_DATETIME,Use BUILD_DATETIME_FROM_FILE)
 
-ifndef VERSIONDEF
-VERSIONDEF := $(TOPDIR)version/version.inc
-MODEM_VER := $(shell awk '/MODEM_VER/ {print substr($$3, 2,12)}' $(VERSIONDEF))
-RECOVERY_VER := $(shell awk '/RECOVERY_VER/ {print substr($$3, 2,12)}' $(VERSIONDEF))
-ANDROID_BOOT_VER := $(shell awk '/ANDROID_BOOT_VER/ {print substr($$3, 2,12)}' $(VERSIONDEF))
-ANDROID_SYS_VER := $(shell awk '/ANDROID_SYS_VER/ {print substr($$3, 2,12)}' $(VERSIONDEF))
-STUDY_PARA_VER := $(shell awk '/STUDY_PARA_VER/ {print substr($$3, 2,12)}' $(VERSIONDEF))
-endif
-
 HAS_BUILD_NUMBER := true
 ifndef BUILD_NUMBER
   # BUILD_NUMBER should be set to the source control value that
