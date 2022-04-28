@@ -111,8 +111,6 @@ OPTIONS.output_super_empty = None
 # TODO(b/132730255): Remove this option.
 OPTIONS.rebuild_recovery = False
 OPTIONS.keep_tmp = False
-#[FOTA][TCT]MODIFIED-BEGIN by Ji.Chen,2021/06/25
-OPTIONS.tct_target_files_extarct_build = False
 
 # In an item list (framework or vendor), we may see entries that select whole
 # partitions. Such an entry might look like this 'SYSTEM/*' (e.g., for the
@@ -964,24 +962,21 @@ def merge_target_files(temp_dir, framework_target_files, framework_item_list,
       vendor_target_files, vendor_item_list, framework_misc_info_keys,
       rebuild_recovery)
 
-#[FOTA][TCT]MODIFIED-BEGIN by Ji.Chen,2021/06/25
-  if not OPTIONS.tct_target_files_extarct_build:
-      if not check_target_files_vintf.CheckVintf(output_target_files_temp_dir):
-        raise RuntimeError("Incompatible VINTF metadata")
+  if not check_target_files_vintf.CheckVintf(output_target_files_temp_dir):
+    raise RuntimeError("Incompatible VINTF metadata")
 
-      generate_images(output_target_files_temp_dir, rebuild_recovery)
+  generate_images(output_target_files_temp_dir, rebuild_recovery)
 
-      generate_super_empty_image(output_target_files_temp_dir, output_super_empty)
+  generate_super_empty_image(output_target_files_temp_dir, output_super_empty)
 
-      # Finally, create the output target files zip archive and/or copy the
-      # output items to the output target files directory.
+  # Finally, create the output target files zip archive and/or copy the
+  # output items to the output target files directory.
 
-      if output_dir:
-        copy_items(output_target_files_temp_dir, output_dir, output_item_list)
+  if output_dir:
+    copy_items(output_target_files_temp_dir, output_dir, output_item_list)
 
-      if not output_target_files:
-        return
-#[FOTA][TCT]MODIFIED-END by Ji.Chen,2021/06/25, end of tct_target_files_extarct_build
+  if not output_target_files:
+    return
 
   output_zip = create_target_files_archive(output_target_files,
                                            output_target_files_temp_dir,
@@ -1080,10 +1075,6 @@ def main():
       OPTIONS.rebuild_recovery = True
     elif o == '--keep-tmp':
       OPTIONS.keep_tmp = True
-#[FOTA][TCT]MODIFIED-BEGIN by Ji.Chen,2021/06/25
-    elif o == '--tct_target_files_extarct_build':
-      OPTIONS.tct_target_files_extarct_build = True
-#[FOTA][TCT]MODIFIED-END by Ji.Chen,2021/06/25
     else:
       return False
     return True
@@ -1110,7 +1101,6 @@ def main():
           'output-super-empty=',
           'rebuild_recovery',
           'keep-tmp',
-          'tct_target_files_extarct_build', #[FOTA][TCT]MODIFIED-BEGIN by Ji.Chen,2021/06/25
       ],
       extra_option_handler=option_handler)
 
@@ -1143,14 +1133,11 @@ def main():
   else:
     output_item_list = None
 
-#[FOTA][TCT]MODIFIED-BEGIN by Ji.Chen,2021/06/25
-  if not OPTIONS.tct_target_files_extarct_build:
-    if not validate_config_lists(
-        framework_item_list=framework_item_list,
-        framework_misc_info_keys=framework_misc_info_keys,
-        vendor_item_list=vendor_item_list):
-      sys.exit(1)
-#[FOTA][TCT]MODIFIED-END by Ji.Chen,2021/06/25
+  if not validate_config_lists(
+      framework_item_list=framework_item_list,
+      framework_misc_info_keys=framework_misc_info_keys,
+      vendor_item_list=vendor_item_list):
+    sys.exit(1)
 
   call_func_with_temp_dir(
       lambda temp_dir: merge_target_files(
