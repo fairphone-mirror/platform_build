@@ -155,6 +155,8 @@ OPTIONS.keep_tmp = False
 OPTIONS.framework_dexpreopt_config = None
 OPTIONS.framework_dexpreopt_tools = None
 OPTIONS.vendor_dexpreopt_config = None
+#[FOTA][TCT]MODIFIED-BEGIN by Ji.Chen,2021/06/25
+OPTIONS.tct_target_files_extarct_build = False
 
 # In an item list (framework or vendor), we may see entries that select whole
 # partitions. Such an entry might look like this 'SYSTEM/*' (e.g., for the
@@ -1552,76 +1554,78 @@ def merge_target_files(temp_dir, framework_target_files, framework_item_list,
       rebuild_recovery, framework_dexpreopt_tools, framework_dexpreopt_config,
       vendor_dexpreopt_config)
 
-  if not check_target_files_vintf.CheckVintf(output_target_files_temp_dir):
-    raise RuntimeError('Incompatible VINTF metadata')
+#[FOTA][TCT]MODIFIED-BEGIN by Ji.Chen,2021/06/25
+  if not OPTIONS.tct_target_files_extarct_build:
+    if not check_target_files_vintf.CheckVintf(output_target_files_temp_dir):
+      raise RuntimeError('Incompatible VINTF metadata')
 
-  partition_map = common.PartitionMapFromTargetFiles(
-      output_target_files_temp_dir)
+    partition_map = common.PartitionMapFromTargetFiles(
+        output_target_files_temp_dir)
 
-  # Generate and check for cross-partition violations of sharedUserId
-  # values in APKs. This requires the input target-files packages to contain
-  # *.apk files.
-  shareduid_violation_modules = os.path.join(
-      output_target_files_temp_dir, 'META', 'shareduid_violation_modules.json')
-  with open(shareduid_violation_modules, 'w') as f:
-    violation = find_shareduid_violation.FindShareduidViolation(
-        output_target_files_temp_dir, partition_map)
+    # Generate and check for cross-partition violations of sharedUserId
+    # values in APKs. This requires the input target-files packages to contain
+    # *.apk files.
+    shareduid_violation_modules = os.path.join(
+        output_target_files_temp_dir, 'META', 'shareduid_violation_modules.json')
+    with open(shareduid_violation_modules, 'w') as f:
+      violation = find_shareduid_violation.FindShareduidViolation(
+          output_target_files_temp_dir, partition_map)
 
-    # Write the output to a file to enable debugging.
-    f.write(violation)
+      # Write the output to a file to enable debugging.
+      f.write(violation)
 
-    # Check for violations across the input builds' partition groups.
-    framework_partitions = item_list_to_partition_set(framework_item_list)
-    vendor_partitions = item_list_to_partition_set(vendor_item_list)
-    shareduid_errors = common.SharedUidPartitionViolations(
-        json.loads(violation), [framework_partitions, vendor_partitions])
-    if shareduid_errors:
-      for error in shareduid_errors:
-        logger.error(error)
-      raise ValueError('sharedUserId APK error. See %s' %
-                       shareduid_violation_modules)
+      # Check for violations across the input builds' partition groups.
+      framework_partitions = item_list_to_partition_set(framework_item_list)
+      vendor_partitions = item_list_to_partition_set(vendor_item_list)
+      shareduid_errors = common.SharedUidPartitionViolations(
+          json.loads(violation), [framework_partitions, vendor_partitions])
+      if shareduid_errors:
+        for error in shareduid_errors:
+          logger.error(error)
+        raise ValueError('sharedUserId APK error. See %s' %
+                         shareduid_violation_modules)
 
-  # host_init_verifier and secilc check only the following partitions:
-  filtered_partitions = {
-      partition: path
-      for partition, path in partition_map.items()
-      if partition in ['system', 'system_ext', 'product', 'vendor', 'odm']
-  }
+    # host_init_verifier and secilc check only the following partitions:
+    filtered_partitions = {
+        partition: path
+        for partition, path in partition_map.items()
+        if partition in ['system', 'system_ext', 'product', 'vendor', 'odm']
+    }
 
-  # Run host_init_verifier on the combined init rc files.
-  common.RunHostInitVerifier(
-      product_out=output_target_files_temp_dir,
-      partition_map=filtered_partitions)
+    # Run host_init_verifier on the combined init rc files.
+    common.RunHostInitVerifier(
+        product_out=output_target_files_temp_dir,
+        partition_map=filtered_partitions)
 
-  # Check that the split sepolicy from the multiple builds can compile.
-  split_sepolicy_cmd = compile_split_sepolicy(output_target_files_temp_dir,
-                                              filtered_partitions)
-  logger.info('Compiling split sepolicy: %s', ' '.join(split_sepolicy_cmd))
-  common.RunAndCheckOutput(split_sepolicy_cmd)
-  # Include the compiled policy in an image if requested.
-  if rebuild_sepolicy:
-    rebuild_image_with_sepolicy(output_target_files_temp_dir, vendor_otatools,
-                                vendor_target_files)
+    # Check that the split sepolicy from the multiple builds can compile.
+    split_sepolicy_cmd = compile_split_sepolicy(output_target_files_temp_dir,
+                                                filtered_partitions)
+    logger.info('Compiling split sepolicy: %s', ' '.join(split_sepolicy_cmd))
+    common.RunAndCheckOutput(split_sepolicy_cmd)
+    # Include the compiled policy in an image if requested.
+    if rebuild_sepolicy:
+      rebuild_image_with_sepolicy(output_target_files_temp_dir, vendor_otatools,
+                                  vendor_target_files)
 
-  # Run validation checks on the pre-installed APEX files.
-  validate_merged_apex_info(output_target_files_temp_dir, partition_map.keys())
+    # Run validation checks on the pre-installed APEX files.
+    validate_merged_apex_info(output_target_files_temp_dir, partition_map.keys())
 
-  generate_images(output_target_files_temp_dir, rebuild_recovery)
+    generate_images(output_target_files_temp_dir, rebuild_recovery)
 
-  generate_super_empty_image(output_target_files_temp_dir, output_super_empty)
+    generate_super_empty_image(output_target_files_temp_dir, output_super_empty)
 
-  # Finally, create the output target files zip archive and/or copy the
-  # output items to the output target files directory.
+    # Finally, create the output target files zip archive and/or copy the
+    # output items to the output target files directory.
 
-  if output_dir:
-    copy_items(output_target_files_temp_dir, output_dir, output_item_list)
+    if output_dir:
+      copy_items(output_target_files_temp_dir, output_dir, output_item_list)
 
-  if not output_target_files:
-    return
+    if not output_target_files:
+      return
 
-  # Create the merged META/care_map.bp
-  generate_care_map(partition_map.keys(), output_target_files_temp_dir)
-
+    # Create the merged META/care_map.bp
+    generate_care_map(partition_map.keys(), output_target_files_temp_dir)
+#[FOTA][TCT]MODIFIED-END by Ji.Chen,2021/06/25, end of tct_target_files_extarct_build
   output_zip = create_target_files_archive(output_target_files,
                                            output_target_files_temp_dir,
                                            temp_dir)
@@ -1730,6 +1734,10 @@ def main():
       OPTIONS.framework_dexpreopt_tools = a
     elif o == '--vendor-dexpreopt-config':
       OPTIONS.vendor_dexpreopt_config = a
+#[FOTA][TCT]MODIFIED-BEGIN by Ji.Chen,2021/06/25
+    elif o == '--tct_target_files_extarct_build':
+      OPTIONS.tct_target_files_extarct_build = True
+#[FOTA][TCT]MODIFIED-END by Ji.Chen,2021/06/25
     else:
       return False
     return True
@@ -1762,6 +1770,7 @@ def main():
           'vendor-otatools=',
           'rebuild-sepolicy',
           'keep-tmp',
+          'tct_target_files_extarct_build', #[FOTA][TCT]MODIFIED-BEGIN by Ji.Chen,2021/06/25
       ],
       extra_option_handler=option_handler)
 
@@ -1794,11 +1803,14 @@ def main():
   else:
     output_item_list = None
 
-  if not validate_config_lists(
-      framework_item_list=framework_item_list,
-      framework_misc_info_keys=framework_misc_info_keys,
-      vendor_item_list=vendor_item_list):
-    sys.exit(1)
+#[FOTA][TCT]MODIFIED-BEGIN by Ji.Chen,2021/06/25
+  if not OPTIONS.tct_target_files_extarct_build:
+    if not validate_config_lists(
+        framework_item_list=framework_item_list,
+        framework_misc_info_keys=framework_misc_info_keys,
+        vendor_item_list=vendor_item_list):
+      sys.exit(1)
+#[FOTA][TCT]MODIFIED-END by Ji.Chen,2021/06/25
 
   call_func_with_temp_dir(
       lambda temp_dir: merge_target_files(
