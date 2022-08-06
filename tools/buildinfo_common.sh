@@ -2,7 +2,7 @@
 
 partition="$1"
 
-datetime=`awk -F\- '{print $3}' version/office_version.h`
+datetime=`awk -F\- '{print $2}' version/build_datetime.h`
 
 display_version=`awk -F\" '/BUILD_AP_VER/{print $2}' version/build_version.h`
 
