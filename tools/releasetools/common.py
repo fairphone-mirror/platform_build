@@ -2033,7 +2033,7 @@ def UnzipToDir(filename, dirname, patterns=None):
       return
     cmd.extend(filtered)
 
-  RunAndCheckOutput(cmd)
+  RunAndCheckOutput(cmd, env={"UNZIP_DISABLE_ZIPBOMB_DETECTION": "TRUE"})
 
 
 def UnzipTemp(filename, patterns=None):
