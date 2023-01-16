@@ -348,6 +348,7 @@ function printconfig()
 
 function set_stuff_for_environment()
 {
+    #set_tct_java_home
     setpaths
     set_sequence_number
 
@@ -1674,6 +1675,39 @@ function mmma()
 
 function make()
 {
+    call_hook ${FUNCNAME[0]} $@
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
+
+    if [ -f $ANDROID_BUILD_TOP/$QTI_BUILDTOOLS_DIR/build/update-vendor-hal-makefiles.sh ]; then
+        vendor_hal_script=$ANDROID_BUILD_TOP/$QTI_BUILDTOOLS_DIR/build/update-vendor-hal-makefiles.sh
+        if (source $vendor_hal_script --check); then
+            regen_needed=0
+        else
+            regen_needed=1
+        fi
+    else
+        vendor_hal_script=$ANDROID_BUILD_TOP/device/qcom/common/vendor_hal_makefile_generator.sh
+        regen_needed=1
+    fi
+
+    if [ $regen_needed -eq 1 ]; then
+        _wrap_build $(get_make_command hidl-gen) hidl-gen ALLOW_MISSING_DEPENDENCIES=true
+        RET=$?
+        if [ $RET -ne 0 ]; then
+            echo -n "${color_failed}#### hidl-gen compilation failed, check above errors"
+            echo " ####${color_reset}"
+            return $RET
+        fi
+        source $vendor_hal_script
+        RET=$?
+        if [ $RET -ne 0 ]; then
+            echo -n "${color_failed}#### HAL file .bp generation failed dure to incpomaptible HAL files , please check above error log"
+            echo " ####${color_reset}"
+            return $RET
+        fi
+    fi
     _wrap_build $(get_make_command "$@") "$@"
 }
 

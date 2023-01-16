@@ -201,6 +201,12 @@ include build/make/core/pdk_config.mk
 
 ADDITIONAL_BUILD_PROPERTIES += ro.treble.enabled=${PRODUCT_FULL_TREBLE}
 
+ADDITIONAL_BUILD_PROPERTIES += ro.tct.sys.ver=$(ANDROID_SYS_VER)
+ADDITIONAL_BUILD_PROPERTIES += ro.tct.boot.ver=$(ANDROID_BOOT_VER)
+ADDITIONAL_BUILD_PROPERTIES += ro.tct.rec.ver=$(RECOVERY_VER)
+ADDITIONAL_BUILD_PROPERTIES += ro.tct.modem.ver=$(MODEM_VER)
+ADDITIONAL_BUILD_PROPERTIES += ro.tct.study.ver=$(STUDY_PARA_VER)
+
 $(KATI_obsolete_var PRODUCT_FULL_TREBLE,\
 	Code should be written to work regardless of a device being Treble or \
 	variables like PRODUCT_SEPOLICY_SPLIT should be used until that is \

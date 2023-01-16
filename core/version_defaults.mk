@@ -246,7 +246,7 @@ ifndef PLATFORM_SECURITY_PATCH
     #  It must be of the form "YYYY-MM-DD" on production devices.
     #  It must match one of the Android Security Patch Level strings of the Public Security Bulletins.
     #  If there is no $PLATFORM_SECURITY_PATCH set, keep it empty.
-      PLATFORM_SECURITY_PATCH := 2022-01-01
+      PLATFORM_SECURITY_PATCH := 2023-01-05
 endif
 .KATI_READONLY := PLATFORM_SECURITY_PATCH
 
@@ -288,6 +288,15 @@ DATE := date -d @$(BUILD_DATETIME)
 # BUILD_DATETIME and DATE can be removed once BUILD_NUMBER moves
 # to soong_ui.
 $(KATI_obsolete_var BUILD_DATETIME,Use BUILD_DATETIME_FROM_FILE)
+
+ifndef VERSIONDEF
+VERSIONDEF := $(TOPDIR)version/version.inc
+MODEM_VER := $(shell awk '/MODEM_VER/ {print substr($$3, 2,12)}' $(VERSIONDEF))
+RECOVERY_VER := $(shell awk '/RECOVERY_VER/ {print substr($$3, 2,12)}' $(VERSIONDEF))
+ANDROID_BOOT_VER := $(shell awk '/ANDROID_BOOT_VER/ {print substr($$3, 2,12)}' $(VERSIONDEF))
+ANDROID_SYS_VER := $(shell awk '/ANDROID_SYS_VER/ {print substr($$3, 2,12)}' $(VERSIONDEF))
+STUDY_PARA_VER := $(shell awk '/STUDY_PARA_VER/ {print substr($$3, 2,12)}' $(VERSIONDEF))
+endif
 
 HAS_BUILD_NUMBER := true
 ifndef BUILD_NUMBER
