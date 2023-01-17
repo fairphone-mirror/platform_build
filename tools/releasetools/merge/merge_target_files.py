@@ -147,6 +147,8 @@ OPTIONS.keep_tmp = False
 OPTIONS.framework_dexpreopt_config = None
 OPTIONS.framework_dexpreopt_tools = None
 OPTIONS.vendor_dexpreopt_config = None
+#[FOTA][TCT]MODIFIED-BEGIN by Ji.Chen,2021/06/25
+OPTIONS.tct_target_files_extarct_build = False
 
 
 def create_merged_package(temp_dir):
@@ -404,36 +406,40 @@ def merge_target_files(temp_dir):
 
   output_target_files_temp_dir = create_merged_package(temp_dir)
 
-  partition_map = common.PartitionMapFromTargetFiles(
-      output_target_files_temp_dir)
+#[FOTA][TCT]MODIFIED-BEGIN by Ji.Chen,2021/06/25
+  if not OPTIONS.tct_target_files_extarct_build:
+    partition_map = common.PartitionMapFromTargetFiles(
+        output_target_files_temp_dir)
 
-  compatibility_errors = merge_compatibility_checks.CheckCompatibility(
-      target_files_dir=output_target_files_temp_dir,
-      partition_map=partition_map)
-  if compatibility_errors:
-    for error in compatibility_errors:
-      logger.error(error)
-    raise ExternalError(
-        'Found incompatibilities in the merged target files package.')
+    compatibility_errors = merge_compatibility_checks.CheckCompatibility(
+        target_files_dir=output_target_files_temp_dir,
+        partition_map=partition_map)
+    if compatibility_errors:
+      for error in compatibility_errors:
+        logger.error(error)
+      raise ExternalError(
+          'Found incompatibilities in the merged target files package.')
 
-  # Include the compiled policy in an image if requested.
-  if OPTIONS.rebuild_sepolicy:
-    rebuild_image_with_sepolicy(output_target_files_temp_dir)
+    # Include the compiled policy in an image if requested.
+    if OPTIONS.rebuild_sepolicy:
+      rebuild_image_with_sepolicy(output_target_files_temp_dir)
 
-  generate_missing_images(output_target_files_temp_dir)
+    generate_missing_images(output_target_files_temp_dir)
 
-  generate_super_empty_image(output_target_files_temp_dir,
-                             OPTIONS.output_super_empty)
+    generate_super_empty_image(output_target_files_temp_dir,
+                               OPTIONS.output_super_empty)
 
-  # Finally, create the output target files zip archive and/or copy the
-  # output items to the output target files directory.
+    # Finally, create the output target files zip archive and/or copy the
+    # output items to the output target files directory.
 
-  if OPTIONS.output_dir:
-    merge_utils.CopyItems(output_target_files_temp_dir, OPTIONS.output_dir,
-                          OPTIONS.output_item_list)
+    if OPTIONS.output_dir:
+      merge_utils.CopyItems(output_target_files_temp_dir, OPTIONS.output_dir,
+                            OPTIONS.output_item_list)
 
-  if not OPTIONS.output_target_files:
-    return
+    if not OPTIONS.output_target_files:
+      return
+
+#[FOTA][TCT]MODIFIED-END by Ji.Chen,2021/06/25, end of tct_target_files_extarct_build
 
   create_target_files_archive(OPTIONS.output_target_files,
                               output_target_files_temp_dir, temp_dir)
@@ -517,6 +523,10 @@ def main():
       OPTIONS.framework_dexpreopt_tools = a
     elif o == '--vendor-dexpreopt-config':
       OPTIONS.vendor_dexpreopt_config = a
+#[FOTA][TCT]MODIFIED-BEGIN by Ji.Chen,2021/06/25
+    elif o == '--tct_target_files_extarct_build':
+      OPTIONS.tct_target_files_extarct_build = True
+#[FOTA][TCT]MODIFIED-END by Ji.Chen,2021/06/25
     else:
       return False
     return True
@@ -550,6 +560,7 @@ def main():
           'vendor-otatools=',
           'rebuild-sepolicy',
           'keep-tmp',
+          'tct_target_files_extarct_build', #[FOTA][TCT]MODIFIED-BEGIN by Ji.Chen,2021/06/25
       ],
       extra_option_handler=option_handler)
 
@@ -600,8 +611,11 @@ def main():
   if OPTIONS.output_item_list:
     OPTIONS.output_item_list = common.LoadListFromFile(OPTIONS.output_item_list)
 
-  if not merge_utils.ValidateConfigLists():
-    sys.exit(1)
+#[FOTA][TCT]MODIFIED-BEGIN by Ji.Chen,2021/06/25
+  if not OPTIONS.tct_target_files_extarct_build:
+    if not merge_utils.ValidateConfigLists():
+      sys.exit(1)
+#[FOTA][TCT]MODIFIED-END by Ji.Chen,2021/06/25
 
   temp_dir = common.MakeTempDir(prefix='merge_target_files_')
   try:
