@@ -132,6 +132,7 @@ INDIVIDUALLY_TOGGLEABLE_PREBUILT_MODULES := \
   btservices \
   devicelock \
   permission \
+  rkpd \
   uwb \
   wifi \
 
