@@ -19,3 +19,5 @@
 # capitalized by convention.
 
 BUILD_ID=8901.4.A.0027
+
+PLATFORM_BASE_OS=Fairphone/FP3/FP3:11/8901.4.A.0022.0/gms-5bdac72d:user/release-keys
