@@ -229,6 +229,8 @@ define generate-common-build-props
 	PRODUCT_MANUFACTURER="$(PRODUCT_MANUFACTURER)" \
 	PRODUCT_MODEL="$(PRODUCT_MODEL)" \
 	PRODUCT_NAME="$(TARGET_PRODUCT)" \
+  OVERRIDE_TARGET_DEVICE="$(OVERRIDE_TARGET_DEVICE)" \
+  OVERRIDE_TARGET_PRODUCT="$(OVERRIDE_TARGET_PRODUCT)" \
 	$(call generate-common-build-props-with-product-vars-set,$(1),$(2))
 endef
 
@@ -342,7 +344,11 @@ ifeq (,$(strip $(BUILD_FINGERPRINT)))
   else
     BF_BUILD_NUMBER := $(file <$(BUILD_NUMBER_FILE))
   endif
-  BUILD_FINGERPRINT := $(PRODUCT_BRAND)/$(TARGET_PRODUCT)/$(TARGET_DEVICE):$(PLATFORM_VERSION)/$(BUILD_ID)/$(BF_BUILD_NUMBER):$(TARGET_BUILD_VARIANT)/$(BUILD_VERSION_TAGS)
+ifneq ($(strip $(OVERRIDE_TARGET_PRODUCT)),)
+    BUILD_FINGERPRINT := $(PRODUCT_BRAND)/$(OVERRIDE_TARGET_PRODUCT)/$(OVERRIDE_TARGET_DEVICE):$(PLATFORM_VERSION)/$(BUILD_ID)/$(BF_BUILD_NUMBER):$(TARGET_BUILD_VARIANT)/$(BUILD_VERSION_TAGS)
+  else
+    BUILD_FINGERPRINT := $(PRODUCT_BRAND)/$(TARGET_PRODUCT)/$(TARGET_DEVICE):$(PLATFORM_VERSION)/$(BUILD_ID)/$(BF_BUILD_NUMBER):$(TARGET_BUILD_VARIANT)/$(BUILD_VERSION_TAGS)
+  endif
 endif
 # unset it for safety.
 BF_BUILD_NUMBER :=
@@ -409,6 +415,8 @@ $(intermediate_system_build_prop): $(BUILDINFO_SH) $(BUILDINFO_COMMON_SH) $(INTE
 	        PRODUCT_MODEL="$(PRODUCT_SYSTEM_MODEL)" \
 	        PRODUCT_NAME="$(PRODUCT_SYSTEM_NAME)" \
 	        PRODUCT_DEVICE="$(PRODUCT_SYSTEM_DEVICE)" \
+          OVERRIDE_TARGET_DEVICE="$(OVERRIDE_TARGET_DEVICE)" \
+          OVERRIDE_TARGET_PRODUCT="$(OVERRIDE_TARGET_PRODUCT)" \
 	        $(call generate-common-build-props-with-product-vars-set,system,$@)
 	$(hide) TARGET_BUILD_TYPE="$(TARGET_BUILD_VARIANT)" \
 	        TARGET_BUILD_FLAVOR="$(TARGET_BUILD_FLAVOR)" \
@@ -440,6 +448,10 @@ $(intermediate_system_build_prop): $(BUILDINFO_SH) $(BUILDINFO_COMMON_SH) $(INTE
 	        TARGET_CPU_ABI_LIST_64_BIT="$(TARGET_CPU_ABI_LIST_64_BIT)" \
 	        TARGET_CPU_ABI="$(TARGET_CPU_ABI)" \
 	        TARGET_CPU_ABI2="$(TARGET_CPU_ABI2)" \
+          BUILD_DISPLAY_ID="$(BUILD_DISPLAY_ID)" \
+          IMS_DISPLAY_ID="$(IMS_DISPLAY_ID)" \
+          OVERRIDE_TARGET_DEVICE="$(OVERRIDE_TARGET_DEVICE)" \
+          OVERRIDE_TARGET_PRODUCT="$(OVERRIDE_TARGET_PRODUCT)" \
 	        bash $(BUILDINFO_SH) >> $@
 	$(hide) $(foreach file,$(system_prop_file), \
 	    if [ -f "$(file)" ]; then \
@@ -2975,7 +2987,14 @@ $(INSTALLED_USERDATAIMAGE_TARGET): $(INSTALLED_USERDATAIMAGE_TARGET_DEPS)
 .PHONY: userdataimage-nodeps
 userdataimage-nodeps: | $(INTERNAL_USERIMAGES_DEPS)
 	$(build-userdataimage-target)
-
+#added by wangxiaoman for 10717899
+# By flashing an empty userdata image, device would format data partition
+# automatically if 'formattable' flag is set in fstab.
+# See function 'fs_mgr_mount_all' in fs_mgr.cpp for more details.
+else ifdef BOARD_PREBUILT_USERDATAIMAGE
+INSTALLED_USERDATAIMAGE_TARGET := $(PRODUCT_OUT)/userdata.img
+$(eval $(call copy-one-file,$(BOARD_PREBUILT_USERDATAIMAGE),$(INSTALLED_USERDATAIMAGE_TARGET)))
+#added end by wangxiaoman
 endif # BUILDING_USERDATA_IMAGE
 
 # ASAN libraries in the system image - build rule.
