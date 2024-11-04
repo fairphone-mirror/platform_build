@@ -20,4 +20,4 @@
 
 BUILD_ID=6.A.031.4
 
-PLATFORM_BASE_OS=Fairphone/FP3/FP3:13/6.A.031.2/gms-880ae2f6:user/release-keys
+PLATFORM_BASE_OS=Fairphone/FP3/FP3:13/6.A.030.0/gms-d57debf7:user/release-keys
