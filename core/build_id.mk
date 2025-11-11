@@ -18,5 +18,5 @@
 # (like "CRB01").  It must be a single word, and is
 # capitalized by convention.
 
-BUILD_ID=6.A.039.6
+BUILD_ID=6.A.039.7
 PLATFORM_BASE_OS=Fairphone/FP3/FP3:13/6.A.039.4/gms-2f612659:user/release-keys
